@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+tailored.json
+*.egg-info/
+.pytest_cache/
