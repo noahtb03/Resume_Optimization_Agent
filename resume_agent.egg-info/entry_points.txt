@@ -1,2 +1,0 @@
-[console_scripts]
-resume-agent = resume_agent.cli:main
