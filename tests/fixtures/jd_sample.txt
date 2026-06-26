@@ -1,0 +1,17 @@
+Data Scientist / Data Analyst — Health Analytics Team
+
+We are looking for a data scientist who can turn messy data into decisions. You
+will build machine learning models, write SQL against large datasets, and create
+dashboards that business partners actually use.
+
+Responsibilities:
+- Develop and validate machine learning and classification models in Python.
+- Write SQL queries and build reporting dashboards (Tableau or similar).
+- Build data pipelines and perform data preprocessing on large datasets.
+- Collaborate cross-functionally with business stakeholders.
+
+Requirements:
+- Bachelor's degree in a quantitative field (Master's preferred).
+- Experience with Python, pandas, and scikit-learn or PyTorch.
+- Strong SQL skills.
+- Familiarity with NLP is a plus.
