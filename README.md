@@ -1,312 +1,162 @@
 # Resume Optimization Agent
 
-Turn your existing résumés plus a job description into a tailored, ATS-friendly,
-one-page Word résumé — **without the AI inventing anything about you.**
+Tailor your real experience to a job posting — **without the AI inventing anything.**
 
-This is not a "let an AI write my résumé" tool. It uses an AI model (Claude) for
-one narrow job: rephrasing accomplishments *you already wrote* to match a job
-posting's language. Everything else — what's true, what gets included, the
-structure, the final document — is handled by deterministic code. The model is
-never allowed to invent a skill, a number, a job, or a date you didn't provide.
-
----
-
-## Table of contents
-
-- [What it does](#what-it-does)
-- [How it works](#how-it-works)
-- [What you'll need](#what-youll-need)
-- [Step 1 — Install it](#step-1--install-it)
-- [Step 2 — Add your Anthropic API key](#step-2--add-your-anthropic-api-key)
-- [Step 3 — Build your "experience bank"](#step-3--build-your-experience-bank)
-- [Step 4 — Generate a tailored résumé](#step-4--generate-a-tailored-résumé)
-- [Step 5 — Export to a Word document](#step-5--export-to-a-word-document)
-- [Command reference](#command-reference)
-- [Tips and tuning](#tips-and-tuning)
-- [Cost](#cost)
-- [Privacy](#privacy)
-- [Limitations (read these)](#limitations-read-these)
+This is not a "let an AI write my résumé" tool. It uses Claude for one narrow job:
+rephrasing accomplishments *you already wrote* to better match a job posting.
+Everything else — what's true, what gets included, the structure, the final
+document — is controlled by deterministic code. The model can reword and reorder
+your real experience; it is fenced so it **cannot add a skill, number, employer,
+or claim you didn't provide.**
 
 ---
 
-## What it does
+## Quick start (the easy way — web app)
 
-You give it:
-1. Your résumé(s) — one or more, as PDFs (or a structured file you maintain).
-2. A job description (a plain text file).
-3. Your own Anthropic API key.
+If you just want to use it, this is all you need.
 
-It gives you back a tailored, one-page `.docx` résumé that:
-- Reorders and rephrases **your real accomplishments** to match the job.
-- Includes only skills, numbers, employers, and dates that are in **your** data.
-- Surfaces your strongest (quantified, technical) bullets even when they don't
-  share many keywords with the posting.
-- Fits on one page, with clean formatting that applicant-tracking systems (ATS)
-  can read — single column, no tables or graphics, clickable contact links.
+**1. Get the project onto your computer.** Either:
+- Download it: on the GitHub page, click the green **Code** button → **Download ZIP**, then unzip it. Or
+- Clone it (if you have git): `git clone https://github.com/noahtb03/Resume_Optimization_Agent.git`
 
----
+**2. Open the folder in your IDE** (VS Code, etc.) and open a terminal in it
+(`Terminal → New Terminal`).
 
-## How it works
-
-The tool runs as a pipeline. Each step is a command you run:
-
-```
-  parse  ──►  (you review)  ──►  lint  ──►  generate  ──►  export
-  PDFs        confirm facts       check       tailor        one-page
-  → JSON      & numbers           the data    to the job    .docx
-```
-
-The key design idea: **the AI rephrases, your code controls the facts.** When
-the model writes a tailored bullet, it must declare which of your original
-bullets, skills, and metrics it used. Deterministic code then verifies every one
-of those against your source data. If the model tries to use something you didn't
-provide, the check fails, it gets one chance to fix it, and if it still fails the
-tool falls back to your original wording. That's why it can't fabricate.
-
----
-
-## What you'll need
-
-- **A computer** (Windows, Mac, or Linux). This guide assumes you have **VS Code**
-  and can open its built-in terminal (`Terminal → New Terminal`).
-- **Python 3.11 or newer.** Check by running `python --version`. If it's older
-  than 3.11 (or "command not found"), install the latest from
-  [python.org](https://www.python.org/downloads/).
-- **An Anthropic API key** (instructions below — it costs a few cents per résumé).
-- *(Optional)* **LibreOffice**, only if you want pixel-exact one-page fitting.
-  The tool works fine without it using a built-in estimate.
-
----
-
-## Step 1 — Install it
-
-Open the project folder in VS Code, then open a terminal in that folder
-(`Terminal → New Terminal`). Run these one at a time.
-
-**Create an isolated environment** (keeps this project's packages separate):
+**3. Install it** (one-time). You need **Python 3.11+** ([get it here](https://www.python.org/downloads/) if `python --version` shows older or nothing):
 
 Windows (PowerShell):
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+pip install -e ".[web]"
 ```
 
 Mac / Linux:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -e ".[web]"
 ```
+> Windows: if activation is blocked, run once `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` (answer `Y`), then try again.
 
-After this, your terminal prompt should start with `(.venv)`. That means it
-worked.
+**4. Add your Anthropic API key** (one-time). Copy the file `.env.example` to a new
+file named `.env`, open it, and paste your key after the `=`:
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+Get a key at [console.anthropic.com](https://console.anthropic.com) — new accounts
+include free credit, and each résumé costs about 1–2 cents. Your key stays on your
+machine and is never uploaded (`.env` is gitignored).
 
-> **Windows note:** if activation fails with a message about scripts being
-> disabled, run this once, answer `Y`, then try the activate line again:
-> ```powershell
-> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-> ```
-
-**Install the tool:**
+**5. Start the app:**
 ```powershell
-pip install -e ".[dev]"
+resume-agent serve
 ```
 
-**Confirm it works** (this runs the test suite — no API key needed, costs
-nothing):
-```powershell
-python -m pytest -q
-```
-You should see something like `27 passed`. If so, you're installed.
+**6. Open the link** it prints — **http://127.0.0.1:8000** — in your browser.
+
+That's it. In the browser you:
+1. Upload 1–3 of your existing résumés (PDF) — it builds your experience bank and
+   flags anything that needs your decision.
+2. Paste a job description.
+3. Get a tailored preview, then **Download .docx** — a clean, one-page,
+   ATS-friendly résumé.
+
+> Tip: close `resume.docx` in Word before re-downloading, or Windows won't let it
+> overwrite the file.
 
 ---
 
-## Step 2 — Add your Anthropic API key
+## How it works
 
-This tool is **BYOK** ("bring your own key") — you use your own Anthropic
-account, and your key never leaves your computer.
+```
+  upload résumés ─► review flags ─► paste job ─► generate ─► download .docx
+```
 
-1. Go to [console.anthropic.com](https://console.anthropic.com), create an
-   account, and generate an API key (it starts with `sk-ant-`). New accounts get
-   a few dollars of free credit — plenty for hundreds of résumés.
-2. In the project folder there's a file called `.env.example`. **Make a copy of
-   it named `.env`** (just `.env`, no other extension).
-3. Open `.env` and put your key after the `=`:
-   ```
-   ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
-   ```
-4. Save it. The tool reads this automatically every time you run it — you only
-   do this once.
+The core idea: **the AI rephrases, your data controls the facts.** When the model
+writes a tailored bullet, it must declare which of your original bullets, skills,
+and numbers it used. Deterministic code then verifies every one of those against
+your source. If the model tries to use something you didn't provide, the check
+fails — it gets one chance to fix it, and otherwise falls back to your original
+wording. That's why it can't fabricate.
 
-> **Your key stays private.** The `.env` file is listed in `.gitignore`, so it
-> will **not** be uploaded if you push this project to GitHub. Never put your key
-> in any other file.
+It also:
+- Keeps each accomplishment as its **own bullet** (never fuses two into one).
+- Preserves your **numbers exactly** (95% stays 95%) by treating them as
+  structured facts.
+- Surfaces your **strongest, most relevant** experience per job, and groups your
+  skills under headings that fit the posting (e.g. a "Full Stack" line for a
+  full-stack role) — using only skills you actually have.
+- Fits everything to **one page**.
 
 ---
 
-## Step 3 — Build your "experience bank"
+## Other ways to use it
 
-The tool works from a single structured file (`my_resume.json`) that holds *all*
-your experience — more than fits on any one résumé. Think of it as your master
-list; the tool picks the best parts for each job.
+### Command line
 
-You have two ways to create it.
-
-### Option A — Parse it from your existing résumés (easiest)
-
-Put 1–3 of your résumé PDFs in the project folder, then run:
+Everything the web app does is also available as commands, if you prefer the terminal:
 
 ```powershell
+# build an experience bank from your résumés (writes my_resume.json + a review file)
 resume-agent parse Resume1.pdf Resume2.pdf --out my_resume.json
-```
 
-This reads your résumés, merges them into one draft, and writes **two** files:
-- `my_resume.json` — your draft experience bank.
-- `my_resume.review.txt` — **important:** a list of things to check.
-
-**Open the `.review.txt` file and read it.** Because this is your real résumé,
-the tool will not silently guess on things that matter. It flags:
-- **Contradictions** — if two résumés say different things (e.g. one says you
-  "led" a project, another says you "contributed to" it), it asks you which is
-  true.
-- **Numbers to confirm** — any metric it found ("95% accuracy", "40% faster"),
-  so you can verify it's accurate.
-- **Strength ratings** — a 1–10 score it suggested for each bullet, which you can
-  adjust.
-
-Edit `my_resume.json` to fix anything the review file flagged. **You are the
-final say on what's true.**
-
-### Option B — Write it by hand
-
-If you prefer full control, copy the included `my_resume.json` (or the sample in
-`tests/fixtures/source_sample.json`) and edit it to your own experience. The
-format is human-readable JSON.
-
-**One rule that matters:** any number in a bullet (like "95% accuracy") must be
-listed as a structured `metric` with a `display` string that appears word-for-word
-in the bullet text. This is what lets the tool guarantee numbers are never
-altered. The linter (next step) will tell you if you got this wrong.
-
-### Check your data with the linter
-
-Before generating, run the linter. It catches data problems **before** you spend
-any API credits:
-
-```powershell
+# check your data for problems before spending anything (free)
 resume-agent lint --source my_resume.json
-```
 
-You want to see: `Lint passed: no data-contract issues found.` If it reports
-errors, it tells you exactly which bullet and what to fix (usually a number in
-the text that isn't set up as a metric).
-
----
-
-## Step 4 — Generate a tailored résumé
-
-Save the job posting you're applying to as a plain text file, e.g. `job.txt`
-(just paste the posting in — formatting doesn't matter).
-
-Then run:
-
-```powershell
+# tailor to a job (job.txt is the posting saved as plain text)
 resume-agent generate --source my_resume.json --jd job.txt --out tailored.json
-```
 
-This calls Claude (costs ~1–2 cents), tailors your bank to that job, and writes
-`tailored.json` — the tailored *content* of your résumé. You'll see
-`wrote tailored.json (llm_calls_used=2)` when it finishes.
-
-> Want to see it run without spending anything? Add `--dry-run`. It exercises the
-> whole pipeline with a stand-in model (output won't be truly tailored, but it
-> proves everything works).
-
----
-
-## Step 5 — Export to a Word document
-
-Turn that tailored content into an actual résumé file:
-
-```powershell
+# render to a one-page Word doc
 resume-agent export --input tailored.json --out resume.docx --one-page
 ```
 
-This writes `resume.docx` — a clean, one-page, ATS-friendly Word document you can
-open, tweak, and submit. The `--one-page` flag trims your lowest-priority bullets
-if needed to fit one page (it protects a minimum number per section, so it won't
-gut your résumé).
+Add `--dry-run` to `generate` to test the whole pipeline offline with a stand-in
+model (no API key, no cost).
 
-> **Tip:** close `resume.docx` in Word before re-running export, or Windows will
-> refuse to overwrite it (you'll see a "permission denied" error — that just
-> means the file is open).
+### Maintain your experience bank by hand
 
-That's it. Open `resume.docx` and you have your tailored résumé.
-
----
-
-## Command reference
-
-| Command | What it does |
-|---|---|
-| `resume-agent parse FILE...  --out my_resume.json` | Build a draft experience bank from résumé PDFs (+ a review file). |
-| `resume-agent lint --source my_resume.json` | Check your data for problems before generating. Costs nothing. |
-| `resume-agent generate --source my_resume.json --jd job.txt --out tailored.json` | Tailor your bank to a job. Uses your API key. |
-| `resume-agent generate ... --dry-run` | Run the full pipeline offline with a stub model (no key, no cost). |
-| `resume-agent export --input tailored.json --out resume.docx --one-page` | Render the tailored content to a one-page Word file. |
-
-The typical loop for each new job is just the last two:
-```powershell
-resume-agent generate --source my_resume.json --jd job.txt --out tailored.json
-resume-agent export --input tailored.json --out resume.docx --one-page
-```
+The parser writes a `my_resume.json` file — your master list of experience, bigger
+than fits on any one résumé. You can edit it directly to fix wording, correct a
+skill's category, adjust which accomplishments are strongest, or add detail. The
+tool picks the best parts for each job from whatever's in this file, so a richer,
+accurate bank produces better résumés.
 
 ---
 
-## Tips and tuning
+## Making it work better
 
-- **One résumé bank, many jobs.** Build `my_resume.json` once. For each new job,
-  save a new `job.txt` and re-run `generate` + `export`. The tool re-picks the
-  best content for each posting.
-- **Coverage report.** `tailored.json` includes a `coverage` section listing job
-  keywords your résumé does and doesn't cover. The "missing" list tells you what
-  the job wants that you don't have — useful for deciding whether to apply, or
-  what real experience to add to your bank.
-- **It won't invent missing skills.** If a job wants "AWS" and you don't have it,
-  the tool will *not* add it. It lists it as missing. That's the point — add real
-  experience to your bank instead.
-- **Exact one-page fitting (optional).** Without LibreOffice, the tool *estimates*
-  page length. To get exact measurement, install
-  [LibreOffice](https://www.libreoffice.org/) — the tool detects it automatically
-  and uses it. No configuration needed.
-- **Strength scores.** Each bullet in `my_resume.json` has a `strength` value
-  (1–10) that boosts your best accomplishments in the ranking. Edit these numbers
-  if you disagree with how a bullet is weighted.
-
----
-
-## Cost
-
-This tool uses your own Anthropic API credits. A single résumé generation costs
-roughly **1–2 cents**. Parsing résumés costs a few cents more (it's a bigger
-request). New Anthropic accounts include free credit that covers hundreds of
-runs. You only pay for what you use, and you can set a spending cap in the
-Anthropic console.
-
-Running `lint`, `--dry-run`, and `export` costs **nothing** — they don't call the
-API.
+- **One bank, many jobs.** Build `my_resume.json` once; for each new posting, just
+  paste a new job description (web) or point `--jd` at a new file (CLI). The tool
+  re-picks the best content each time.
+- **Review the flags.** When you upload multiple résumés that disagree on a fact,
+  it flags the contradiction and asks you to pick the accurate version. *You* decide
+  what's true — the tool never guesses on facts about your career.
+- **Read what it produces.** It guarantees it won't *add* anything you didn't
+  provide, but it can't know whether your source itself is accurate. Always read the
+  generated résumé before sending it — you're the final check.
+- **Coverage report.** The result shows which job keywords your experience covers
+  and which it's missing — useful for deciding whether to apply or what real
+  experience to highlight. It will **not** add a missing skill (e.g. "AWS") you
+  don't have; it lists it as a gap instead.
+- **Exact one-page fitting (optional).** Without extra software, page length is
+  estimated. For pixel-exact fitting, install
+  [LibreOffice](https://www.libreoffice.org/) — the tool detects it automatically.
+- **Tune the ranking (advanced).** Each bullet in `my_resume.json` has a
+  `strength` score (1–10) that boosts your best work; skill categories control
+  grouping. Both are plain fields you can edit.
 
 ---
 
-## Privacy
+## Cost & privacy
 
-- **Your API key never leaves your machine.** It's read from your local `.env`
-  file and passed directly to Anthropic. It is never stored, logged, or sent
-  anywhere else.
-- **Your résumé data stays local.** Files like `my_resume.json` and `tailored.json`
-  live only on your computer.
-- When you run `generate` or `parse`, your résumé content and the job description
-  are sent to Anthropic's API (that's how the model tailors them), subject to
-  Anthropic's usage policies. Nothing is sent anywhere else.
+- **Cost:** your own Anthropic API credits. ~1–2 cents per résumé; parsing costs a
+  bit more. `lint`, `--dry-run`, and `export` are free. You can set a spending cap
+  in the Anthropic console.
+- **Privacy:** your API key and résumé data stay on your machine. When you generate
+  or parse, your résumé content and the job description are sent to Anthropic's API
+  (that's how tailoring works), subject to Anthropic's policies — nothing is sent
+  anywhere else, and nothing is stored.
 
 ---
 
@@ -315,20 +165,23 @@ API.
 This tool is honest about what it can and can't guarantee:
 
 - **It verifies attribution, not perfect phrasing.** It guarantees every skill,
-  number, employer, and date comes from your data, and that numbers are
-  reproduced exactly. It does **not** guarantee a rephrased bullet is a perfect
-  paraphrase — so **read your generated résumé before sending it.** You're the
-  final check.
-- **You must confirm what's true.** When parsing finds contradictions between
-  your résumés, it asks *you* to resolve them. It never decides facts about your
-  career on its own.
-- **"One page" without LibreOffice is an estimate.** It's close, but for a
-  guarantee, install LibreOffice or just check the page length yourself.
-- **It is not a cover-letter or career-advice tool.** It tailors résumé content
-  from your real experience. That's it.
+  number, employer, and date comes from your data, and that numbers are reproduced
+  exactly. It does **not** guarantee a rephrased bullet is a flawless paraphrase —
+  so **read your generated résumé before sending it.** You are the final check.
+- **It's only as accurate as your source.** If one of your uploaded résumés
+  overstates something, the tool will faithfully carry that forward. Garbage in,
+  garbage out — confirm the flagged items and keep your experience bank truthful.
+- **You must resolve contradictions.** When uploaded résumés disagree, it asks
+  *you* which version is true. It never decides facts about your career on its own.
+- **"One page" without LibreOffice is an estimate.** Close, but for a guarantee,
+  install LibreOffice or just check the length yourself.
+- **English-first.** Built and tested for English résumés. Other Latin-script
+  languages may work with reduced quality; non-Latin scripts are experimental.
+- **Not a cover-letter or career-advice tool.** It tailors résumé content from your
+  real experience. That's the whole job.
 
 ---
 
-*Built as a constrained LLM system: structured experience records, deterministic
+*Built as a constrained-LLM system: structured experience records, deterministic
 relevance scoring, provenance validation, and bounded repair/fallback to generate
 job-specific résumés without unsupported claims.*
