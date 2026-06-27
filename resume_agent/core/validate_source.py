@@ -9,12 +9,34 @@ class SourceValidationError(ValueError):
     pass
 
 
+def _clean_date(d):
+    """A date object with no usable year is treated as no date (None). Resumes
+    often list only a graduation year, leaving start blank as {year: null}."""
+    if not isinstance(d, dict):
+        return d
+    if d.get("year") in (None, ""):
+        return None
+    return d
+
+
+def _sanitize(raw: dict) -> dict:
+    """Drop year-less date marks so optional dates parse as missing, not invalid."""
+    for section in ("experiences", "projects", "education"):
+        for item in raw.get(section, []) or []:
+            if "start" in item:
+                item["start"] = _clean_date(item.get("start"))
+            if "end" in item:
+                item["end"] = _clean_date(item.get("end"))
+    return raw
+
+
 def load_source(raw: dict) -> ResumeSource:
     """Parse raw dict -> ResumeSource, then enforce global invariants:
       1. skill ids unique; bullet ids globally unique; metric ids globally unique
       2. every bullet.skill_ids resolves to a known skill
     Raises SourceValidationError on any failure.
     """
+    raw = _sanitize(raw)
     try:
         source = ResumeSource.model_validate(raw)
     except Exception as e:  # pydantic ValidationError -> our error type

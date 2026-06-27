@@ -57,7 +57,7 @@ class Experience(BaseModel):
     employer: str
     title: str
     location: Optional[str] = None
-    start: DateMark
+    start: Optional[DateMark] = None
     end: Optional[DateMark] = None       # None == current role
     bullets: list[SourceBullet]
 
