@@ -16,6 +16,10 @@ class LLMClient(Protocol):
 class AnthropicClient:
     """Request-scoped. Construct with the user's key, use, discard. No caching."""
 
+    # model strings used across the app
+    DEFAULT_MODEL = "claude-sonnet-4-6"   # tailoring / JD analysis (judgment-heavy)
+    FAST_MODEL = "claude-haiku-4-5-20251001"  # parsing (mechanical extraction)
+
     def __init__(self, api_key: str, model: str = "claude-sonnet-4-6") -> None:
         if not api_key:
             raise ValueError("BYOK: an Anthropic API key is required")

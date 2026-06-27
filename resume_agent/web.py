@@ -64,7 +64,7 @@ async def api_parse(files: list[UploadFile] = File(...), api_key: str = Form(Non
             p = Path(tmpdir) / (f.filename or "resume.pdf")
             p.write_bytes(await f.read())
             paths.append(str(p))
-        client = AnthropicClient(api_key=key)
+        client = AnthropicClient(api_key=key, model=AnthropicClient.FAST_MODEL)
         draft = parse_resumes(paths, client)
         return JSONResponse({
             "source": draft.source,
@@ -130,5 +130,6 @@ async def api_export(tailored: str = Form(...), one_page: bool = Form(True)) -> 
     )
 
 
+# serve static assets if any are added later
 if _STATIC.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")

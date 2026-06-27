@@ -79,7 +79,10 @@ def _cmd_parse(args) -> int:
     key = _require_key(args)
     if not key:
         return 2
-    client = AnthropicClient(api_key=key, model=args.model)
+    # parsing is mechanical extraction -> use the fast model unless the user
+    # explicitly passed a non-default --model
+    model = args.model if args.model != "claude-sonnet-4-6" else AnthropicClient.FAST_MODEL
+    client = AnthropicClient(api_key=key, model=model)
     draft = parse_resumes(args.inputs, client)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(draft.source, f, indent=2)
@@ -152,6 +155,7 @@ def _cmd_export(args) -> int:
         render_docx(resume, args.out)
         print(f"wrote {args.out}")
     return 0
+
 
 def _cmd_serve(args) -> int:
     try:
