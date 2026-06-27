@@ -15,11 +15,14 @@ def test_rejects_duplicate_bullet_id(raw_source):
         load_source(raw)
 
 
-def test_rejects_unknown_skill_ref(raw_source):
+def test_drops_unknown_skill_ref(raw_source):
+    # a dangling skill ref (parser slip) is now silently dropped, not rejected --
+    # a missing tag is harmless; a crash would block the whole resume.
     raw = {k: v for k, v in raw_source.items() if k != "inferences"}
     raw["experiences"][0]["bullets"][0]["skill_ids"].append("ghost_skill")
-    with pytest.raises(SourceValidationError):
-        load_source(raw)
+    source = load_source(raw)
+    all_skill_refs = {sid for b in source.all_bullets() for sid in b.skill_ids}
+    assert "ghost_skill" not in all_skill_refs
 
 
 def test_rejects_duplicate_metric_id(raw_source):

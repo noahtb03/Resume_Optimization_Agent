@@ -20,13 +20,23 @@ def _clean_date(d):
 
 
 def _sanitize(raw: dict) -> dict:
-    """Drop year-less date marks so optional dates parse as missing, not invalid."""
+    """Drop year-less date marks so optional dates parse as missing, not invalid,
+    and strip bullet skill_ids that reference skills not defined in the bank (a
+    parser slip: tagging a skill it forgot to add). A missing tag is harmless; a
+    dangling reference would otherwise crash validation."""
     for section in ("experiences", "projects", "education"):
         for item in raw.get(section, []) or []:
             if "start" in item:
                 item["start"] = _clean_date(item.get("start"))
             if "end" in item:
                 item["end"] = _clean_date(item.get("end"))
+
+    known = {s.get("id") for s in raw.get("skills", []) or [] if isinstance(s, dict)}
+    for section in ("experiences", "projects"):
+        for item in raw.get(section, []) or []:
+            for b in item.get("bullets", []) or []:
+                if isinstance(b, dict) and "skill_ids" in b:
+                    b["skill_ids"] = [sid for sid in (b.get("skill_ids") or []) if sid in known]
     return raw
 
 
