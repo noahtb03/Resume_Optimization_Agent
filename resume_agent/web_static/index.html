@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Optimization Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1c1a;
+    --ink-soft: #4a4f4a;
+    --paper: #f7f6f1;
+    --card: #fffefb;
+    --line: #e4e0d4;
+    --line-strong: #d2ccba;
+    --muted: #7d7f78;
+    --accent: #1f5c4a;
+    --accent-deep: #163f33;
+    --accent-soft: #e9f0eb;
+    --warn: #8a5a1c;
+    --warn-soft: #f5ecdb;
+    --err: #8a2f2c;
+    --err-soft: #f6e9e7;
+    --r: 10px;
+    --shadow: 0 1px 2px rgba(20,30,24,.04), 0 6px 20px rgba(20,30,24,.05);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background:
+      radial-gradient(1200px 400px at 70% -10%, #eef2ec 0%, transparent 60%),
+      var(--paper);
+    color: var(--ink);
+    font: 15px/1.6 "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header { padding: 40px 24px 26px; max-width: 880px; margin: 0 auto; }
+  .wordmark { display: flex; align-items: baseline; gap: 11px; }
+  .wordmark .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); transform: translateY(-3px); flex: 0 0 9px; }
+  header h1 {
+    margin: 0; font-family: "Fraunces", Georgia, serif;
+    font-size: 30px; line-height: 1.05; font-weight: 600; letter-spacing: -0.015em; color: var(--ink);
+  }
+  header h1 em { font-style: italic; color: var(--accent); }
+  header p { margin: 12px 0 0 20px; color: var(--ink-soft); font-size: 14.5px; max-width: 54ch; }
+
+  main { max-width: 880px; margin: 0 auto; padding: 8px 24px 60px; position: relative; }
+
+  /* the spine connecting steps — a real progress thread (signature element) */
+  .steps { position: relative; }
+  .steps::before {
+    content: ""; position: absolute; left: 31px; top: 24px; bottom: 24px; width: 2px;
+    background: linear-gradient(var(--line-strong), var(--line) 40%, transparent);
+  }
+
+  .step {
+    position: relative; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--r); margin-bottom: 18px; box-shadow: var(--shadow);
+    transition: border-color .25s, box-shadow .25s, opacity .35s, transform .35s;
+  }
+  .step > .head { display: flex; align-items: center; gap: 14px; padding: 16px 20px; }
+  .step .num {
+    width: 30px; height: 30px; flex: 0 0 30px; border-radius: 50%;
+    display: grid; place-items: center; font-family: "Fraunces", serif; font-size: 14px; font-weight: 600;
+    background: var(--card); color: var(--accent); border: 2px solid var(--line-strong);
+    position: relative; z-index: 1; transition: background .25s, color .25s, border-color .25s;
+  }
+  .step.active .num { border-color: var(--accent); }
+  .step.done .num { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .step .title { font-weight: 600; font-size: 15.5px; letter-spacing: -0.01em; }
+  .step .body { padding: 4px 20px 20px 64px; }
+
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+
+  label { display: block; font-weight: 600; font-size: 12.5px; margin: 0 0 6px; color: var(--ink-soft); }
+  textarea, input[type=text], input[type=password] {
+    width: 100%; font: inherit; padding: 11px 13px; color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 8px; background: #fffefb;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea { resize: vertical; min-height: 96px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.5; }
+  textarea.jd { font-family: "Inter", sans-serif; font-size: 14px; min-height: 130px; }
+
+  button {
+    font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+    background: var(--accent); color: #fff; border: 0; padding: 11px 20px; border-radius: 8px;
+    transition: background .15s, transform .05s;
+  }
+  button:hover { background: var(--accent-deep); }
+  button:active { transform: translateY(1px); }
+  button:disabled { background: #bcc4bd; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line-strong); }
+  button.ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .file-drop {
+    border: 1.5px dashed var(--line-strong); border-radius: 9px; padding: 22px;
+    text-align: center; color: var(--muted); cursor: pointer; background: #fdfdfa;
+    font-size: 13.5px; transition: border-color .15s, background .15s, color .15s;
+  }
+  .file-drop:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .file-drop.drag { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+  .filelist { margin-top: 10px; }
+  .filerow {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 13px; border: 1px solid var(--line); border-radius: 8px; background: #fdfdfa; margin: 7px 0; font-size: 13.5px;
+    animation: pop .25s ease;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+  .filerow .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 9px; }
+  .filerow .nm::before { content: "PDF"; font-size: 9.5px; font-weight: 700; letter-spacing: .04em; color: var(--accent); background: var(--accent-soft); padding: 2px 5px; border-radius: 4px; flex: 0 0 auto; }
+  .filerow button { background: transparent; color: var(--muted); border: 0; padding: 2px 7px; font-size: 17px; line-height: 1; }
+  .filerow button:hover { color: var(--err); background: transparent; }
+
+  .status { font-size: 13px; margin-top: 11px; min-height: 1.2em; }
+  .status.busy { color: var(--muted); }
+  .status.busy::before { content: "⋯ "; }
+  .status.ok { color: var(--accent); }
+  .status.ok::before { content: "✓ "; font-weight: 700; }
+  .status.error { color: var(--err); }
+
+  .flags { margin-top: 14px; }
+  .flag {
+    border: 1px solid var(--line); border-left: 3px solid var(--line-strong);
+    border-radius: 7px; padding: 10px 13px; margin: 8px 0; background: #fdfdfa; font-size: 13px; line-height: 1.5;
+  }
+  .flag.contradiction { border-left-color: var(--err); background: var(--err-soft); }
+  .flag.unverified_metric { border-left-color: var(--warn); background: var(--warn-soft); }
+  .flag .k { font-weight: 700; text-transform: capitalize; letter-spacing: -0.01em; }
+
+  .coverage { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; margin: 2px 0 14px; }
+  .coverage .lead { font-weight: 600; margin-right: 4px; }
+  .chip { background: var(--accent-soft); color: var(--accent-deep); border-radius: 20px; padding: 3px 11px; font-size: 12px; font-weight: 500; }
+  .chip.miss { background: #efece4; color: var(--muted); text-decoration: line-through; text-decoration-color: #c9c3b4; }
+
+  .preview {
+    border: 1px solid var(--line); border-radius: 9px; padding: 20px 22px; background: #fff;
+    margin-top: 6px; max-height: 480px; overflow: auto;
+  }
+  .preview .pname { font-family: "Fraunces", serif; font-weight: 600; font-size: 20px; letter-spacing: -0.01em; }
+  .preview h3 {
+    margin: 18px 0 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; border-bottom: 1px solid var(--line); padding-bottom: 4px;
+  }
+  .preview .entry { font-weight: 600; font-size: 13.5px; margin-top: 9px; }
+  .preview .sub { color: var(--muted); font-size: 12.5px; }
+  .preview .b { font-size: 13.5px; margin: 5px 0; padding-left: 18px; position: relative; line-height: 1.5; color: var(--ink-soft); }
+  .preview .b::before {
+    content: "✓"; position: absolute; left: 0; top: 1px; color: var(--accent);
+    font-size: 11px; font-weight: 700;
+  }
+
+  .muted { color: var(--muted); }
+  .disabled-step { opacity: .45; pointer-events: none; filter: saturate(.6); }
+  details summary { cursor: pointer; font-size: 13px; color: var(--accent); font-weight: 500; }
+  details summary:hover { color: var(--accent-deep); }
+  code.inline { background: #efece4; padding: 1.5px 6px; border-radius: 5px; font-size: 12.5px; font-family: ui-monospace, Menlo, monospace; }
+
+  @media (max-width: 560px) {
+    header { padding: 28px 18px 18px; } header h1 { font-size: 24px; }
+    main { padding: 4px 14px 40px; } .steps::before { left: 27px; }
+    .step .body { padding-left: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark"><span class="dot"></span><h1>Résumé&nbsp;Agent <em>—</em> tailored, not invented</h1></div>
+  <p>Reshapes your real experience to fit a job posting. It rephrases what you wrote; it never adds a skill, number, or claim you didn't.</p>
+</header>
+
+<main>
+  <!-- key (shown only if .env doesn't have one) -->
+  <div class="step" id="keyStep" style="display:none">
+    <div class="head"><span class="num">·</span><span class="title">Your Anthropic API key</span></div>
+    <div class="body">
+      <p class="hint">Used for this session only and never stored. Tip: put it in a
+        <code class="inline">.env</code> file as <code class="inline">ANTHROPIC_API_KEY</code> and you won't be asked again.</p>
+      <input type="password" id="apiKey" placeholder="sk-ant-...">
+    </div>
+  </div>
+
+  <div class="steps">
+  <!-- step 1: source -->
+  <div class="step" id="step1">
+    <div class="head"><span class="num">1</span><span class="title">Your experience</span></div>
+    <div class="body">
+      <p class="hint">Upload 1–3 résumés (PDF) to build a draft automatically, or paste an existing source JSON.</p>
+      <div class="file-drop" id="drop">Drop a résumé PDF here, or click to choose — add up to 3, one at a time</div>
+      <input type="file" id="files" accept=".pdf" multiple hidden>
+      <div class="filelist" id="filelist"></div>
+      <div class="row" id="parseRow" style="margin-top:10px; display:none">
+        <button id="parseBtn">Parse résumé(s)</button>
+        <button class="ghost" id="clearBtn">Clear all</button>
+      </div>
+      <div class="status" id="parseStatus"></div>
+      <div class="flags" id="flags"></div>
+      <details style="margin-top:12px">
+        <summary>Or paste source JSON directly</summary>
+        <textarea id="sourceJson" placeholder='{ "contact": {...}, "skills": [...], "experiences": [...] }' style="margin-top:8px"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="ghost" id="lintBtn">Check data</button>
+          <span class="status" id="lintStatus"></span>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- step 2: job -->
+  <div class="step" id="step2">
+    <div class="head"><span class="num">2</span><span class="title">The job</span></div>
+    <div class="body">
+      <p class="hint">Paste the full job description.</p>
+      <textarea class="jd" id="jd" placeholder="Paste the job posting here..."></textarea>
+      <div class="row" style="margin-top:12px">
+        <button id="genBtn">Generate tailored résumé</button>
+        <span class="status" id="genStatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- step 3: result -->
+  <div class="step disabled-step" id="step3">
+    <div class="head"><span class="num">3</span><span class="title">Result</span></div>
+    <div class="body">
+      <div class="coverage" id="coverage"></div>
+      <div id="warnings"></div>
+      <div class="preview" id="preview"></div>
+      <div class="row" style="margin-top:14px">
+        <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0">
+          <input type="checkbox" id="onePage" checked> Fit to one page
+        </label>
+        <button id="exportBtn">Download .docx</button>
+        <span class="status" id="exportStatus"></span>
+      </div>
+    </div>
+  </div>
+  </div>
+</main>
+
+<script>
+let chosenFiles = [];
+let sourceData = null;     // the confirmed source dict
+let tailoredData = null;   // last generate result
+
+const $ = s => document.querySelector(s);
+async function getKey() {
+  const el = $("#apiKey");
+  return el ? el.value.trim() : "";
+}
+
+(async () => {
+  const r = await fetch("/api/has-key").then(r => r.json()).catch(() => ({has_key:false}));
+  if (!r.has_key) $("#keyStep").style.display = "";
+})();
+
+// ---- file handling ----
+const drop = $("#drop"), filesInput = $("#files");
+drop.onclick = () => filesInput.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("drag"); };
+drop.ondragleave = () => drop.classList.remove("drag");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("drag"); addFiles(e.dataTransfer.files); };
+filesInput.onchange = () => { addFiles(filesInput.files); filesInput.value = ""; };
+
+function addFiles(list) {
+  for (const f of list) {
+    if (chosenFiles.length >= 3) {
+      setStatus("#parseStatus", "error", "You can add at most 3 résumés. Remove one to add another.");
+      break;
+    }
+    // skip exact duplicates (same name + size)
+    if (chosenFiles.some(x => x.name === f.name && x.size === f.size)) continue;
+    chosenFiles.push(f);
+  }
+  renderFileList();
+}
+
+function renderFileList() {
+  const box = $("#filelist");
+  box.innerHTML = "";
+  chosenFiles.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "filerow";
+    const nm = document.createElement("span");
+    nm.className = "nm";
+    nm.textContent = `${i + 1}.  ${f.name}`;
+    const rm = document.createElement("button");
+    rm.textContent = "×";
+    rm.title = "Remove";
+    rm.onclick = () => { chosenFiles.splice(i, 1); renderFileList(); };
+    row.appendChild(nm); row.appendChild(rm);
+    box.appendChild(row);
+  });
+  $("#parseRow").style.display = chosenFiles.length ? "" : "none";
+  $("#parseBtn").textContent = `Parse ${chosenFiles.length} résumé${chosenFiles.length === 1 ? "" : "s"}`;
+  drop.textContent = chosenFiles.length >= 3
+    ? "3 résumés added (max). Remove one to add another."
+    : "Drop another résumé PDF, or click to choose — " + (3 - chosenFiles.length) + " slot(s) left";
+}
+
+$("#parseBtn").onclick = () => { if (chosenFiles.length) parse(); };
+$("#clearBtn").onclick = () => {
+  chosenFiles = [];
+  renderFileList();
+  $("#flags").innerHTML = "";
+  setStatus("#parseStatus", "", "");
+  drop.textContent = "Drop a résumé PDF here, or click to choose — add up to 3, one at a time";
+};
+
+async function parse() {
+  const key = await getKey();
+  setStatus("#parseStatus", "busy", `Reading ${chosenFiles.length} résumé(s) and structuring your experience...`);
+  const fd = new FormData();
+  chosenFiles.forEach(f => fd.append("files", f));
+  if (key) fd.append("api_key", key);
+  try {
+    const res = await fetch("/api/parse", { method: "POST", body: fd });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    const data = await res.json();
+    sourceData = data.source;
+    $("#sourceJson").value = JSON.stringify(data.source, null, 2);
+    renderFlags(data.flags, data.notes);
+    setStatus("#parseStatus", "ok", `Parsed ${chosenFiles.length} résumé(s). Review the flags below, then add a job.`);
+    $("#step1").classList.add("done"); $("#step2").classList.add("active");
+  } catch (e) {
+    setStatus("#parseStatus", "error", "Couldn't parse: " + e.message);
+  }
+}
+
+function renderFlags(flags, notes) {
+  const box = $("#flags");
+  box.innerHTML = "";
+  if (notes && notes.length) {
+    const n = document.createElement("p");
+    n.className = "hint"; n.textContent = notes.join(" ");
+    box.appendChild(n);
+  }
+  if (!flags || !flags.length) return;
+  const intro = document.createElement("p");
+  intro.className = "hint";
+  intro.textContent = flags.length === 1
+    ? "One thing needs your decision — pick the accurate version:"
+    : `${flags.length} things need your decision — pick the accurate version for each:`;
+  box.appendChild(intro);
+  flags.forEach((fl, idx) => {
+    const d = document.createElement("div");
+    d.className = "flag " + fl.kind;
+    d.dataset.idx = idx;
+    const head = document.createElement("div");
+    head.innerHTML = `<span class="k">${fl.kind.replace(/_/g," ")}</span> — ${escapeHtml(fl.message)}`;
+    d.appendChild(head);
+    if (fl.options && fl.options.length) {
+      const opts = document.createElement("div");
+      opts.className = "row"; opts.style.marginTop = "10px";
+      fl.options.forEach(opt => {
+        const b = document.createElement("button");
+        b.className = "ghost"; b.style.fontSize = "12.5px"; b.style.padding = "6px 12px";
+        b.textContent = opt;
+        b.onclick = () => resolveFlag(d, fl, opt);
+        opts.appendChild(b);
+      });
+      d.appendChild(opts);
+    }
+    box.appendChild(d);
+  });
+}
+
+function resolveFlag(el, fl, choice) {
+  // record the human's choice as a note in the source JSON so it's captured,
+  // and mark the flag resolved in the UI.
+  try {
+    const src = JSON.parse($("#sourceJson").value);
+    src._resolved_contradictions = src._resolved_contradictions || [];
+    src._resolved_contradictions.push({ where: fl.where || "", chose: choice });
+    $("#sourceJson").value = JSON.stringify(src, null, 2);
+    sourceData = src;
+  } catch (e) { /* if JSON not parseable yet, still resolve visually */ }
+  el.style.borderLeftColor = "var(--accent)";
+  el.style.background = "var(--accent-soft)";
+  el.innerHTML = `<span class="k">resolved</span> — you chose: <strong>${escapeHtml(choice)}</strong>`
+    + `<div class="hint" style="margin-top:6px">Edit the bullet wording in the JSON above to match this choice if needed.</div>`;
+}
+
+// ---- lint ----
+$("#lintBtn").onclick = async () => {
+  const src = $("#sourceJson").value.trim();
+  if (!src) return setStatus("#lintStatus", "error", "Paste source JSON first.");
+  setStatus("#lintStatus", "busy", "Checking...");
+  const fd = new FormData(); fd.append("source", src);
+  try {
+    const res = await fetch("/api/lint", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "lint failed");
+    sourceData = JSON.parse(src);
+    setStatus("#lintStatus", data.ok ? "ok" : "error", data.report);
+    if (data.ok) { $("#step1").classList.add("done"); $("#step2").classList.add("active"); }
+  } catch (e) {
+    setStatus("#lintStatus", "error", e.message);
+  }
+};
+
+// ---- generate ----
+$("#genBtn").onclick = async () => {
+  const src = $("#sourceJson").value.trim();
+  const jd = $("#jd").value.trim();
+  if (!src) return setStatus("#genStatus", "error", "Add your experience first (step 1).");
+  if (!jd) return setStatus("#genStatus", "error", "Paste a job description.");
+  const key = await getKey();
+  setStatus("#genStatus", "busy", "Tailoring to the job...");
+  const fd = new FormData();
+  fd.append("source", src); fd.append("jd", jd);
+  if (key) fd.append("api_key", key);
+  try {
+    const res = await fetch("/api/generate", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "generation failed");
+    tailoredData = data;
+    renderResult(data);
+    setStatus("#genStatus", "ok", `Done (${data.meta.llm_calls_used} API calls).`);
+    $("#step2").classList.add("done"); $("#step3").classList.add("active");
+    $("#step3").classList.remove("disabled-step");
+    $("#step3").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    setStatus("#genStatus", "error", e.message);
+  }
+};
+
+function renderResult(d) {
+  const cov = d.meta.coverage;
+  const c = $("#coverage");
+  c.innerHTML = `<span>Keyword coverage: <strong>${cov.jd_keywords_covered}/${cov.jd_keywords_total}</strong></span>`;
+  (cov.covered || []).slice(0, 12).forEach(k => c.insertAdjacentHTML("beforeend", `<span class="chip">${escapeHtml(k)}</span>`));
+  (cov.missing || []).slice(0, 12).forEach(k => c.insertAdjacentHTML("beforeend", `<span class="chip miss">${escapeHtml(k)}</span>`));
+
+  const w = $("#warnings"); w.innerHTML = "";
+  (cov.warnings || []).forEach(msg => {
+    const e = document.createElement("div"); e.className = "flag unverified_metric";
+    e.textContent = msg; w.appendChild(e);
+  });
+
+  const p = $("#preview"); p.innerHTML = "";
+  const c2 = d.contact;
+  p.insertAdjacentHTML("beforeend", `<div class="pname">${escapeHtml(c2.full_name)}</div>`);
+  if (d.summary) { p.insertAdjacentHTML("beforeend", `<h3>Summary</h3><div>${escapeHtml(d.summary.text)}</div>`); }
+  if (d.skills && d.skills.length) {
+    p.insertAdjacentHTML("beforeend", `<h3>Skills</h3><div class="sub">${d.skills.map(s=>escapeHtml(s.name)).join(", ")}</div>`);
+  }
+  if (d.experiences && d.experiences.length) {
+    p.insertAdjacentHTML("beforeend", `<h3>Experience</h3>`);
+    d.experiences.forEach(e => {
+      p.insertAdjacentHTML("beforeend", `<div class="entry">${escapeHtml(e.title)}, ${escapeHtml(e.employer)}</div>`);
+      e.bullets.forEach(b => p.insertAdjacentHTML("beforeend", `<div class="b">${escapeHtml(b.text)}</div>`));
+    });
+  }
+  if (d.projects && d.projects.length) {
+    p.insertAdjacentHTML("beforeend", `<h3>Projects</h3>`);
+    d.projects.forEach(pr => {
+      p.insertAdjacentHTML("beforeend", `<div class="entry">${escapeHtml(pr.name)}</div>`);
+      pr.bullets.forEach(b => p.insertAdjacentHTML("beforeend", `<div class="b">${escapeHtml(b.text)}</div>`));
+    });
+  }
+}
+
+// ---- export ----
+$("#exportBtn").onclick = async () => {
+  if (!tailoredData) return;
+  setStatus("#exportStatus", "busy", "Building document...");
+  const fd = new FormData();
+  fd.append("tailored", JSON.stringify(tailoredData));
+  fd.append("one_page", $("#onePage").checked ? "true" : "false");
+  try {
+    const res = await fetch("/api/export", { method: "POST", body: fd });
+    if (!res.ok) throw new Error((await res.json()).detail || "export failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "resume.docx"; a.click();
+    URL.revokeObjectURL(url);
+    setStatus("#exportStatus", "ok", "Downloaded resume.docx");
+  } catch (e) {
+    setStatus("#exportStatus", "error", e.message);
+  }
+};
+
+function setStatus(sel, kind, msg) {
+  const el = $(sel); el.className = "status " + kind; el.textContent = msg;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+</script>
+</body>
+</html>

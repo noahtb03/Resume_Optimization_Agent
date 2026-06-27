@@ -1,0 +1,112 @@
+{
+  "contact": {
+    "full_name": "Jordan Rivera",
+    "email": "jordan.rivera@example.com",
+    "phone": "+1-555-0142",
+    "location": "Cincinnati, OH",
+    "links": ["https://github.com/jrivera", "https://linkedin.com/in/jrivera"]
+  },
+  "skills": [
+    {"id": "python", "name": "Python", "category": "Languages", "aliases": ["py"]},
+    {"id": "sql", "name": "SQL", "category": "Languages", "aliases": ["mysql", "postgres"]},
+    {"id": "pandas", "name": "pandas", "category": "Data", "aliases": []},
+    {"id": "pytorch", "name": "PyTorch", "category": "ML", "aliases": []},
+    {"id": "sklearn", "name": "scikit-learn", "category": "ML", "aliases": ["sklearn"]},
+    {"id": "git", "name": "Git", "category": "Tools", "aliases": []},
+    {"id": "tableau", "name": "Tableau", "category": "BI", "aliases": []}
+  ],
+  "experiences": [
+    {
+      "id": "exp_amig",
+      "employer": "Amigo Analytics",
+      "title": "Data Analyst",
+      "location": "Remote",
+      "start": {"year": 2023, "month": 6},
+      "end": null,
+      "bullets": [
+        {
+          "id": "amig_01",
+          "text": "Worked with customer service to build a three-stage classification pipeline with preprocessing for chatbot logs.",
+          "skill_ids": ["python", "pandas", "sklearn"],
+          "tags": ["data pipelines", "classification"],
+          "metrics": []
+        },
+        {
+          "id": "amig_02",
+          "text": "Wrote SQL queries and Tableau dashboards that cut weekly reporting time.",
+          "skill_ids": ["sql", "tableau"],
+          "tags": ["reporting", "dashboards"],
+          "metrics": [
+            {"metric_id": "amig_02_time", "value": 30, "unit": "%",
+             "context": "reduction in weekly reporting time", "display": "30% less reporting time"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exp_lab",
+      "employer": "University Research Lab",
+      "title": "Research Assistant",
+      "location": "Cincinnati, OH",
+      "start": {"year": 2022, "month": 1},
+      "end": {"year": 2023, "month": 5},
+      "bullets": [
+        {
+          "id": "lab_01",
+          "text": "Fine-tuned a BERT text classifier for labeling survey responses.",
+          "skill_ids": ["python", "pytorch"],
+          "tags": ["NLP", "classification", "machine learning"],
+          "metrics": [
+            {"metric_id": "lab_01_f1", "value": 0.91, "unit": null,
+             "context": "macro F1 on held-out set", "display": "0.91 macro F1"}
+          ]
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_churn",
+      "name": "Churn Predictor",
+      "url": "https://github.com/jrivera/churn",
+      "start": {"year": 2024, "month": 2},
+      "end": {"year": 2024, "month": 4},
+      "bullets": [
+        {
+          "id": "churn_01",
+          "text": "Built a logistic-regression churn model in scikit-learn with pandas feature preprocessing.",
+          "skill_ids": ["python", "sklearn", "pandas"],
+          "tags": ["machine learning", "data preprocessing"],
+          "metrics": []
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "edu_uc",
+      "institution": "University of Cincinnati",
+      "degree": "B.S. Statistics",
+      "field": "Statistics",
+      "location": "Cincinnati, OH",
+      "start": {"year": 2018, "month": 8},
+      "end": {"year": 2022, "month": 5},
+      "details": ["Minor in Computer Science"]
+    }
+  ],
+  "certifications": [],
+  "inferences": [
+    {
+      "id": "inf_manual_collab",
+      "source_bullet_id": "amig_01",
+      "label": "Cross-functional collaboration",
+      "kind": "collaboration",
+      "claim_level": "defensible_inference",
+      "confidence": 0.9,
+      "evidence": "amig_01: worked with customer service to build the pipeline",
+      "approval_status": "approved",
+      "allowed_uses": ["skills_section", "summary", "bullet_reframing"],
+      "inferred_by": "rules"
+    }
+  ]
+}

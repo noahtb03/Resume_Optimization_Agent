@@ -1,0 +1,29 @@
+[project]
+name = "resume-agent"
+version = "0.1.0"
+description = "Constrained LLM resume-tailoring system with provenance validation"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2",
+    "anthropic>=0.40",
+    "python-dotenv>=1.0",
+    "pypdf>=4.0",
+    "python-docx>=1.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.27", "python-multipart>=0.0.9"]
+
+[project.scripts]
+resume-agent = "resume_agent.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["resume_agent", "resume_agent.models", "resume_agent.core", "resume_agent.llm", "resume_agent.llm.prompts", "resume_agent.parsing", "resume_agent.export", "resume_agent.web_static"]
+
+[tool.setuptools.package-data]
+"resume_agent.web_static" = ["*.html"]
